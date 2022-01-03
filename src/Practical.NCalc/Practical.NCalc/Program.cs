@@ -6,7 +6,14 @@ namespace Practical.NCalc
 {
     class Program
     {
-        static void Main(string[] argsx)
+        static void Main(string[] args)
+        {
+            Scenario1();
+            Scenario2();
+            Console.ReadLine();
+        }
+
+        private static void Scenario1()
         {
             Expression e = new Expression("if (And(NOT(ISBLANK(ReceivedDate)), ReceivedDate >= Date(2017,01,01), ReceivedDate <= Date(2018,12,31)), Total * 0.1, Total * VAT)");
 
@@ -37,6 +44,27 @@ namespace Practical.NCalc
             };
 
             var rs = e.Evaluate();
+        }
+
+        private static void Scenario2()
+        {
+            Expression e = new Expression("if(PostCode = UPPERCASE('A1'), Total * 0.1, if(PostCode = 'A2', Total * 0.2, -1))");
+
+            e.Parameters["PostCode"] = "A1";
+            e.Parameters["Total"] = 1000;
+
+            e.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                var operatorName = name.ToUpper();
+                if (operatorName == "UPPERCASE")
+                {
+                    args.Result = args.Parameters[0].Evaluate().ToString().ToUpper();
+                }
+            };
+
+            var rs = e.Evaluate();
+
+            Console.WriteLine(rs);
         }
     }
 }
