@@ -10,6 +10,7 @@ namespace Practical.NCalc
         {
             Scenario1();
             Scenario2();
+            Scenario3();
             Console.ReadLine();
         }
 
@@ -51,6 +52,27 @@ namespace Practical.NCalc
             Expression e = new Expression("if(PostCode = UPPERCASE('A1'), Total * 0.1, if(PostCode = 'A2', Total * 0.2, -1))");
 
             e.Parameters["PostCode"] = "A1";
+            e.Parameters["Total"] = 1000;
+
+            e.EvaluateFunction += delegate (string name, FunctionArgs args)
+            {
+                var operatorName = name.ToUpper();
+                if (operatorName == "UPPERCASE")
+                {
+                    args.Result = args.Parameters[0].Evaluate().ToString().ToUpper();
+                }
+            };
+
+            var rs = e.Evaluate();
+
+            Console.WriteLine(rs);
+        }
+
+        private static void Scenario3()
+        {
+            // Expression e = new Expression("Total * 50%"); // not support
+            Expression e = new Expression("Total * 0.5");
+
             e.Parameters["Total"] = 1000;
 
             e.EvaluateFunction += delegate (string name, FunctionArgs args)
