@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36212.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormulaParser", "FormulaParser\FormulaParser.csproj", "{0DE99B09-31C1-4C96-9FDB-1CF1F788942C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormulaParser.Tests", "FormulaParser.Tests\FormulaParser.Tests.csproj", "{58BF0073-D3EF-43FE-BF35-F13D12B53DED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0DE99B09-31C1-4C96-9FDB-1CF1F788942C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DE99B09-31C1-4C96-9FDB-1CF1F788942C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DE99B09-31C1-4C96-9FDB-1CF1F788942C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DE99B09-31C1-4C96-9FDB-1CF1F788942C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58BF0073-D3EF-43FE-BF35-F13D12B53DED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58BF0073-D3EF-43FE-BF35-F13D12B53DED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58BF0073-D3EF-43FE-BF35-F13D12B53DED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58BF0073-D3EF-43FE-BF35-F13D12B53DED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FDEDCDDF-3453-48DF-ADEC-A5677A6F2E72}
+	EndGlobalSection
+EndGlobal
