@@ -30,7 +30,11 @@ public class EvaluationContext
             return func(args);
         }
 
-        throw new Exception($"Function '{name}' not defined.");
+        var suggestion = SuggestClosestFunction(name);
+
+        throw new Exception(suggestion != null
+            ? $"Function '{name}' not found. Did you mean '{suggestion}'?"
+            : $"Function '{name}' not found.");
     }
 
     private void RegisterBuiltInFunctions()
@@ -84,4 +88,36 @@ public class EvaluationContext
         });
     }
 
+    public static int Levenshtein(string s, string t)
+    {
+        var d = new int[s.Length + 1, t.Length + 1];
+
+        for (int i = 0; i <= s.Length; i++) d[i, 0] = i;
+        for (int j = 0; j <= t.Length; j++) d[0, j] = j;
+
+        for (int i = 1; i <= s.Length; i++)
+        {
+            for (int j = 1; j <= t.Length; j++)
+            {
+                int cost = s[i - 1] == t[j - 1] ? 0 : 1;
+                d[i, j] = new[]
+                {
+                    d[i - 1, j] + 1,      // deletion
+                    d[i, j - 1] + 1,      // insertion
+                    d[i - 1, j - 1] + cost // substitution
+                }.Min();
+            }
+        }
+
+        return d[s.Length, t.Length];
+    }
+
+    private string? SuggestClosestFunction(string name)
+    {
+        return _functions.Keys
+            .Select(fn => new { Name = fn, Distance = Levenshtein(name, fn) })
+            .OrderBy(x => x.Distance)
+            .FirstOrDefault(x => x.Distance <= 2)?  // adjust threshold as needed
+            .Name;
+    }
 }
