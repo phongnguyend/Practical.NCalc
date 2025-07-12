@@ -2,7 +2,7 @@
 
 public abstract class Expr
 {
-    public abstract object Evaluate(Dictionary<string, object> context);
+    public abstract object Evaluate(EvaluationContext context);
 
     public abstract override string ToString();
 }
@@ -13,10 +13,31 @@ public class NumberExpr : Expr
 
     public NumberExpr(double value) => Value = value;
 
-    public override object Evaluate(Dictionary<string, object> context) => Value;
+    public override object Evaluate(EvaluationContext context) => Value;
 
     public override string ToString() => Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
+
+public class StringExpr : Expr
+{
+    public string Value;
+    public StringExpr(string value) => Value = value;
+
+    public override object Evaluate(EvaluationContext context) => Value;
+
+    public override string ToString() => $"\"{Value}\"";
+}
+
+public class BoolExpr : Expr
+{
+    public bool Value;
+    public BoolExpr(bool value) => Value = value;
+
+    public override object Evaluate(EvaluationContext context) => Value;
+
+    public override string ToString() => Value.ToString().ToLower();
+}
+
 
 public class VariableExpr : Expr
 {
@@ -24,8 +45,11 @@ public class VariableExpr : Expr
 
     public VariableExpr(string name) => Name = name;
 
-    public override object Evaluate(Dictionary<string, object> context) =>
-        context.TryGetValue(Name, out var value) ? value : throw new Exception($"Variable '{Name}' not found.");
+    public override object Evaluate(EvaluationContext context)
+    {
+        return context.GetVariable(Name);
+    }
+
 
     public override string ToString() => Name;
 }
@@ -43,37 +67,70 @@ public class BinaryExpr : Expr
         Right = right;
     }
 
-    public override object Evaluate(Dictionary<string, object> context)
+    public override object Evaluate(EvaluationContext context)
     {
         var left = Left.Evaluate(context);
         var right = Right.Evaluate(context);
 
         return Operator switch
         {
-            "*" => Convert.ToDouble(left) * Convert.ToDouble(right),
-            "+" => Convert.ToDouble(left) + Convert.ToDouble(right),
+            "+" => EvaluateAdd(left, right),
             "-" => Convert.ToDouble(left) - Convert.ToDouble(right),
+            "*" => Convert.ToDouble(left) * Convert.ToDouble(right),
             "/" => Convert.ToDouble(left) / Convert.ToDouble(right),
-            ">=" => Compare(left, right) >= 0,
-            "<=" => Compare(left, right) <= 0,
-            ">" => Compare(left, right) > 0,
-            "<" => Compare(left, right) < 0,
             "==" => Equals(left, right),
             "!=" => !Equals(left, right),
-            _ => throw new Exception($"Unsupported operator {Operator}")
+            ">" => Compare(left, right) > 0,
+            "<" => Compare(left, right) < 0,
+            ">=" => Compare(left, right) >= 0,
+            "<=" => Compare(left, right) <= 0,
+            _ => throw new Exception($"Unsupported operator: {Operator}")
         };
+    }
+
+    private static object EvaluateAdd(object left, object right)
+    {
+        if (left is string || right is string)
+        {
+            return $"{left}{right}"; // string concat
+        }
+
+        return Convert.ToDouble(left) + Convert.ToDouble(right); // numeric add
     }
 
     private static int Compare(object left, object right)
     {
+        if (left == null || right == null)
+        {
+            throw new Exception("Cannot compare null values.");
+        }
+
         if (left is IComparable l && right is IComparable r)
+        {
+            // Convert strings and numbers to compatible types
+            if (left.GetType() != right.GetType())
+            {
+                if (left is string || right is string)
+                {
+                    return string.Compare(left.ToString(), right.ToString(), StringComparison.Ordinal);
+                }
+
+                if (left is double || right is double)
+                {
+                    return Convert.ToDouble(left).CompareTo(Convert.ToDouble(right));
+                }
+
+                throw new Exception($"Cannot compare values of different types: {left.GetType()} and {right.GetType()}");
+            }
+
             return l.CompareTo(r);
+        }
+
         throw new Exception($"Cannot compare values: {left} and {right}");
     }
 
     public override string ToString() => $"({Left} {Operator} {Right})";
 }
-
 
 public class FunctionExpr : Expr
 {
@@ -86,44 +143,12 @@ public class FunctionExpr : Expr
         Args = args;
     }
 
-    public override object Evaluate(Dictionary<string, object> context)
+    public override object Evaluate(EvaluationContext context)
     {
-        switch (Name)
-        {
-            case "IF":
-                if (Args.Count != 3) throw new Exception("IF requires 3 arguments.");
-                return Convert.ToBoolean(Args[0].Evaluate(context))
-                    ? Args[1].Evaluate(context)
-                    : Args[2].Evaluate(context);
-
-            case "AND":
-                foreach (var arg in Args)
-                    if (!Convert.ToBoolean(arg.Evaluate(context)))
-                        return false;
-                return true;
-
-            case "NOT":
-                if (Args.Count != 1) throw new Exception("NOT requires 1 argument.");
-                return !Convert.ToBoolean(Args[0].Evaluate(context));
-
-            case "ISBLANK":
-                if (Args.Count != 1) throw new Exception("ISBLANK requires 1 argument.");
-                return Args[0].Evaluate(context) == null;
-
-            case "DATE":
-                if (Args.Count != 3) throw new Exception("DATE requires 3 arguments.");
-                return new DateTime(
-                    Convert.ToInt32(Args[0].Evaluate(context)),
-                    Convert.ToInt32(Args[1].Evaluate(context)),
-                    Convert.ToInt32(Args[2].Evaluate(context))
-                );
-
-            default:
-                throw new Exception($"Unknown function: {Name}");
-        }
+        var argValues = Args.Select(arg => arg.Evaluate(context)).ToArray();
+        return context.CallFunction(Name, argValues);
     }
 
-    public override string ToString() =>
-        $"{Name}({string.Join(", ", Args)})";
+    public override string ToString() => $"{Name}({string.Join(", ", Args)})";
 }
 

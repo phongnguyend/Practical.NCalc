@@ -30,17 +30,35 @@ public class Parser
     {
         Token token = Peek();
 
+        // Grouping
         if (Match(TokenType.OpenParen))
         {
-            var inner = ParseExpression();
+            var expr = ParseExpression();
             if (!Match(TokenType.CloseParen))
             {
                 throw new Exception("Expected closing )");
             }
 
-            return inner;
+            return expr;
         }
 
+        // String literal
+        if (token.Type == TokenType.String)
+        {
+            Advance();
+            return new StringExpr(token.Value);
+        }
+
+        // Boolean literal
+        if (token.Type == TokenType.Identifier &&
+            (token.Value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+             token.Value.Equals("false", StringComparison.OrdinalIgnoreCase)))
+        {
+            Advance();
+            return new BoolExpr(bool.Parse(token.Value));
+        }
+
+        // Function or variable
         if (token.Type == TokenType.Identifier)
         {
             string name = token.Value;
@@ -71,6 +89,7 @@ public class Parser
             return new VariableExpr(name);
         }
 
+        // Number
         if (token.Type == TokenType.Number)
         {
             Advance();
@@ -81,7 +100,8 @@ public class Parser
     }
 
 
-    // New: Parse binary expressions like a * b or x >= y
+
+    // Parse binary expressions like a * b or x >= y
     private Expr ParseBinaryExpression(int parentPrecedence = 0)
     {
         var left = ParsePrimary();

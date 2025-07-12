@@ -2,6 +2,7 @@
 {
     Identifier,
     Number,
+    String,
     Comma,
     OpenParen,
     CloseParen,

@@ -15,9 +15,7 @@ public class SimpleMathTests
         var parser = new Parser(tokens);
         Expr tree = parser.ParseExpression();
 
-        var context = new Dictionary<string, object>
-        {
-        };
+        var context = new EvaluationContext();
 
         var result = tree.Evaluate(context);
 
@@ -43,9 +41,7 @@ public class SimpleMathTests
         var parser = new Parser(tokens);
         Expr tree = parser.ParseExpression();
 
-        var context = new Dictionary<string, object>
-        {
-        };
+        var context = new EvaluationContext();
 
         var result = tree.Evaluate(context);
 

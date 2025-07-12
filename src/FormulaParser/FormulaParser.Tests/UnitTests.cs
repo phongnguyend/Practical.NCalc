@@ -13,12 +13,10 @@ public class UnitTests
         var parser = new Parser(tokens);
         Expr tree = parser.ParseExpression();
 
-        var context = new Dictionary<string, object>
-        {
-            ["ReceivedDate"] = new DateTime(2018, 5, 10),
-            ["Total"] = 1000.0,
-            ["VAT"] = 0.2
-        };
+        var context = new EvaluationContext();
+        context.Variables["ReceivedDate"] = new DateTime(2018, 5, 10);
+        context.Variables["Total"] = 1000.0;
+        context.Variables["VAT"] = 0.2;
 
         var result = tree.Evaluate(context);
 
@@ -36,15 +34,29 @@ public class UnitTests
         var parser = new Parser(tokens);
         Expr tree = parser.ParseExpression();
 
-        var context = new Dictionary<string, object>
-        {
-            ["ReceivedDate"] = new DateTime(2018, 5, 10),
-            ["Total"] = 1000.0,
-            ["VAT"] = 0.2
-        };
+        var context = new EvaluationContext();
+        context.Variables["ReceivedDate"] = new DateTime(2018, 5, 10);
+        context.Variables["Total"] = 1000.0;
+        context.Variables["VAT"] = 0.2;
 
         var result = tree.Evaluate(context);
 
         Assert.Equal(2103.0, result);
+    }
+
+    [Fact]
+    public void Test3()
+    {
+        string formula = "IF(ISBLANK(Name), \"No name\", \"Hello \" + Name)";
+        var tokenizer = new Tokenizer(formula);
+        var parser = new Parser(tokenizer.Tokenize());
+        Expr expr = parser.ParseExpression();
+
+        var context = new EvaluationContext();
+        context.Variables["Name"] = "Phong";
+
+        var result = expr.Evaluate(context);
+
+        Assert.Equal("Hello Phong", result);
     }
 }

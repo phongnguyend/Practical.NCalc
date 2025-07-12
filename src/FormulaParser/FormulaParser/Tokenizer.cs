@@ -13,20 +13,50 @@
         {
             char c = _text[_pos];
 
-            if (char.IsWhiteSpace(c)) { _pos++; continue; }
+            if (char.IsWhiteSpace(c))
+            {
+                _pos++;
+                continue;
+            }
+
+            if (c == '"')
+            {
+                _pos++; // skip opening quote
+                int start = _pos;
+                while (_pos < _text.Length && _text[_pos] != '"')
+                {
+                    _pos++;
+                }
+
+                if (_pos >= _text.Length)
+                {
+                    throw new Exception("Unterminated string literal");
+                }
+
+                string str = _text.Substring(start, _pos - start);
+                _pos++; // skip closing quote
+                tokens.Add(new Token(TokenType.String, str));
+                continue;
+            }
 
             if (char.IsLetter(c))
             {
                 var start = _pos;
                 while (_pos < _text.Length && (char.IsLetterOrDigit(_text[_pos]) || _text[_pos] == '_'))
+                {
                     _pos++;
+                }
+
                 tokens.Add(new Token(TokenType.Identifier, _text[start.._pos]));
             }
             else if (char.IsDigit(c) || c == '.')
             {
                 var start = _pos;
                 while (_pos < _text.Length && (char.IsDigit(_text[_pos]) || _text[_pos] == '.'))
+                {
                     _pos++;
+                }
+
                 tokens.Add(new Token(TokenType.Number, _text[start.._pos]));
             }
             else
